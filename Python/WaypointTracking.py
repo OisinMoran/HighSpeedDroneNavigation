@@ -15,6 +15,8 @@ def limit(x):
 waypointList = [(1000,1000,1000), (1000,1000,2000)]
 curPos = (0,0,0)
 
+realFlag = False
+
 # Define Proportional Gains
 KPyaw = (-1)/(math.pi)
 KPphi = 0.001
@@ -26,9 +28,10 @@ KPgaz = 0.001
 util.flatTrim()
 # Ensure drone is aligned with y-axis facing in the increasing y direction
 refYaw = sensors.getOrientation("YAW")
-
-control.takeOff()
-# time.sleep(5)
+ 
+if realFlag:
+	control.takeOff()
+	time.sleep(5)
 
 # First waypoint
 n = 0
@@ -68,7 +71,10 @@ while counter < 100: # This condition will become the Waypoint Reached condition
 	gaz = limit(KPgaz*errPos[2])
 	print("Down" if gaz < 0 else "Up")
 
-	control.move(phi, theta, gaz, yaw)
 	counter +=1
 
-control.land()
+	if realFlag:
+		control.move(phi, theta, gaz, yaw)
+
+if realFlag:
+	control.land()
