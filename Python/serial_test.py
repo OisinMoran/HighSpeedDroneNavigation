@@ -13,7 +13,7 @@ while 1:
             try:
                 
                 text_file = open("PozyxData.txt","w")
-                text_file.write("%d %d %d " % (int(newline[2]),int(newline[3]),int(newline[4])))
+                text_file.write("%d %d %d" % (int(newline[2]),int(newline[3]),int(newline[4])))
                 text_file.close()
             except:
                 pass
