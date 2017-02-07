@@ -2,24 +2,26 @@
 ##      Waypoint Tracking      ##
 ## =========================== ##
 
-import math, time
+import math
+import time
 
 # Function to limit arguments to the move command to the range [-1,1]
 def limit(x):
 	if abs(x) <= 1:
 		return x
 	else:
+		import math
 		return math.copysign(1, x)
 
 # List of x,y,z tuples representing waypoints
-waypointList = [(1000,1000,1000), (1000,1000,2000)]
+waypointList = [(2800,3100,1000)]
 curPos = (0,0,0)
 
-realFlag = False
+realFlag = True
 
 # Define Proportional Gains
 KPyaw = (-1)/(math.pi)
-KPphi = 0.001
+KPphi = 0.0005
 KPtheta = (-1)*KPphi
 KPgaz = 0.001
 
@@ -31,13 +33,15 @@ refYaw = sensors.getOrientation("YAW")
  
 if realFlag:
 	control.takeOff()
-	time.sleep(5)
+	util.calibrateMagnetometer()
+	time.sleep(10)
 
 # First waypoint
 n = 0
 
 counter = 0
-while counter < 100: # This condition will become the Waypoint Reached condition
+while counter < 1600: # This condition will become the Waypoint Reached condition
+	time.sleep(0.01)
 	print(counter)
 	# SENSOR READING
 	# Read current location
@@ -45,18 +49,26 @@ while counter < 100: # This condition will become the Waypoint Reached condition
 		f_data = f.read()
 	# Read current yaw
 	curYaw = sensors.getOrientation("YAW")
-	curPos = tuple([float(i) for i in f_data.split(" ")])
-	print("Current position:\t {}".format(curPos))
+	# Read current height
+	curAlt = 1000*sensors.getAltitude()
+	try:
+		curPos = tuple([float(i) for i in f_data.split(" ")])
+	except:
+		pass
+	print("Current position:\t {},{},{}".format(curPos[0], curPos[1], curAlt))
 	print("Waypoint:\t\t {}".format(waypointList[n]))
 
 	# Calculate error between drones current position and current waypoint
 	errPos = tuple([i - j for i, j in zip(waypointList[n], curPos)])
 	errYaw = math.radians(refYaw - curYaw)
-	print("Error:\t\t {}".format(errPos))
+	errAlt = waypointList[n][2]-curAlt
+	print("Error:\t\t {},{},{}".format(errPos[0], errPos[1], errAlt))
 
 	# CONTROL
 	# Yaw
 	yaw = KPyaw*(math.atan2(math.sin(errYaw), math.cos(errYaw)))
+	if abs(yaw) < 0.2:
+		yaw = 0
 	print("Counterclockwise" if yaw < 0 else "Clockwise")
 
 	# Roll
@@ -68,7 +80,7 @@ while counter < 100: # This condition will become the Waypoint Reached condition
 	print("Forward" if theta < 0 else "Backward")
 
 	# Vertical Speed
-	gaz = limit(KPgaz*errPos[2])
+	gaz = limit(KPgaz*errAlt)
 	print("Down" if gaz < 0 else "Up")
 
 	counter +=1
