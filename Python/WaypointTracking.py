@@ -14,20 +14,20 @@ def limit(x):
 		return math.copysign(1, x)
 
 # List of x,y,z tuples representing waypoints
-waypointList = [(2800,3100,1000),(3200,2700,1000)]
+waypointList = [(2400,2900,1000),(3720,1750,1000),(2400,2900,1000)]
 numWaypoints = len(waypointList)
 # How close in mm do we need to get to the waypoint
-waypoint_tolerance = 200
+waypoint_tolerance = 150
 
 curPos = (0,0,0)
 
-realFlag = False
+realFlag = True
 finishedFlag = False
 
 # Define Proportional Gains
 KPyaw = (-1)/(math.pi)
-KPphi = 0.0005
-KPtheta = (-1)*KPphi
+KPphi = 0.0002
+KPtheta = (-1.2)*KPphi
 KPgaz = 0.001
 
 # SETUP
@@ -45,7 +45,7 @@ if realFlag:
 n = 0
 
 counter = 0
-while not finishedFlag and counter < 1600: # This condition will become the Waypoint Reached condition
+while not finishedFlag and counter < 3000: # This condition will become the Waypoint Reached condition
 	time.sleep(0.01)
 	print(counter)
 	# SENSOR READING
@@ -59,7 +59,7 @@ while not finishedFlag and counter < 1600: # This condition will become the Wayp
 	try:
 		curPos = tuple([float(i) for i in f_data.split(" ")])
 	except:
-		pass
+		print("READING ERROR")
 	print("Current position:\t {},{},{}".format(curPos[0], curPos[1], curAlt))
 	print("Waypoint:\t\t {}".format(waypointList[n]))
 
@@ -75,7 +75,7 @@ while not finishedFlag and counter < 1600: # This condition will become the Wayp
 	# if math.hypot(math.hypot(errPos[0], errPos[1]), errAlt) < waypoint_tolerance:
 	if math.hypot(errPos[0], errPos[1]) < waypoint_tolerance:
 		control.hover()
-		sleep(5)
+		time.sleep(5)
 		# If there are no more waypoints we are finished
 		if n+1 >= numWaypoints:
 			finishedFlag = True
@@ -86,7 +86,7 @@ while not finishedFlag and counter < 1600: # This condition will become the Wayp
 	else:
 		# Yaw
 		yaw = KPyaw*(math.atan2(math.sin(errYaw), math.cos(errYaw)))
-		if abs(yaw) < 0.2:
+		if abs(yaw) < 0.15:
 			yaw = 0
 		print("Counterclockwise" if yaw < 0 else "Clockwise")
 
