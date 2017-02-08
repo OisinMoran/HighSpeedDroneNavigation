@@ -14,10 +14,15 @@ def limit(x):
 		return math.copysign(1, x)
 
 # List of x,y,z tuples representing waypoints
-waypointList = [(2800,3100,1000)]
+waypointList = [(2800,3100,1000),(3200,2700,1000)]
+numWaypoints = len(waypointList)
+# How close in mm do we need to get to the waypoint
+waypoint_tolerance = 200
+
 curPos = (0,0,0)
 
-realFlag = True
+realFlag = False
+finishedFlag = False
 
 # Define Proportional Gains
 KPyaw = (-1)/(math.pi)
@@ -36,11 +41,11 @@ if realFlag:
 	util.calibrateMagnetometer()
 	time.sleep(10)
 
-# First waypoint
+# First waypoint (waypoint counter)
 n = 0
 
 counter = 0
-while counter < 1600: # This condition will become the Waypoint Reached condition
+while not finishedFlag and counter < 1600: # This condition will become the Waypoint Reached condition
 	time.sleep(0.01)
 	print(counter)
 	# SENSOR READING
@@ -65,28 +70,43 @@ while counter < 1600: # This condition will become the Waypoint Reached conditio
 	print("Error:\t\t {},{},{}".format(errPos[0], errPos[1], errAlt))
 
 	# CONTROL
-	# Yaw
-	yaw = KPyaw*(math.atan2(math.sin(errYaw), math.cos(errYaw)))
-	if abs(yaw) < 0.2:
-		yaw = 0
-	print("Counterclockwise" if yaw < 0 else "Clockwise")
+	# If waypoint is reached
+	# Currently just 2D error, 3D would be: (maybe abstract to function for readability)
+	# if math.hypot(math.hypot(errPos[0], errPos[1]), errAlt) < waypoint_tolerance:
+	if math.hypot(errPos[0], errPos[1]) < waypoint_tolerance:
+		control.hover()
+		sleep(5)
+		# If there are no more waypoints we are finished
+		if n+1 >= numWaypoints:
+			finishedFlag = True
+		# Otherwise advance to the next waypoint
+		else:
+			print("Next Waypoint")
+			n += 1
+	else:
+		# Yaw
+		yaw = KPyaw*(math.atan2(math.sin(errYaw), math.cos(errYaw)))
+		if abs(yaw) < 0.2:
+			yaw = 0
+		print("Counterclockwise" if yaw < 0 else "Clockwise")
 
-	# Roll
-	phi = limit(KPphi*errPos[0])
-	print("Left" if phi < 0 else "Right")
+		# Roll
+		phi = limit(KPphi*errPos[0])
+		print("Left" if phi < 0 else "Right")
 
-	# Pitch
-	theta = limit(KPtheta*errPos[1])
-	print("Forward" if theta < 0 else "Backward")
+		# Pitch
+		theta = limit(KPtheta*errPos[1])
+		print("Forward" if theta < 0 else "Backward")
 
-	# Vertical Speed
-	gaz = limit(KPgaz*errAlt)
-	print("Down" if gaz < 0 else "Up")
+		# Vertical Speed
+		gaz = limit(KPgaz*errAlt)
+		print("Down" if gaz < 0 else "Up")
+
+		if realFlag:
+			control.move(phi, theta, gaz, yaw)
 
 	counter +=1
 
-	if realFlag:
-		control.move(phi, theta, gaz, yaw)
-
+print ("Journey Complete!" if finishedFlag else "Time Up!")
 if realFlag:
 	control.land()
