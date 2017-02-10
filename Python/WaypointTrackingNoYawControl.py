@@ -26,7 +26,7 @@ realFlag = True
 finishedFlag = False
 
 # Define Proportional Gains
-KPyaw = (-1)/(math.pi)
+# KPyaw = (-1)/(math.pi)
 KPphi = 0.0002
 KPtheta = (-1.2)*KPphi
 KPgaz = 0.001
