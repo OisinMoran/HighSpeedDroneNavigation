@@ -14,7 +14,7 @@ def limit(x):
 		return math.copysign(1, x)
 
 # List of x,y,z tuples representing waypoints
-waypointList = [(2400,2900,1000),(3720,1750,1000),(2400,2900,1000)]
+waypointList = [[2500,3200,1000],[4000,2200,1000]]
 numWaypoints = len(waypointList)
 # How close in mm do we need to get to the waypoint
 waypoint_tolerance = 150
@@ -45,7 +45,7 @@ if realFlag:
 n = 0
 
 counter = 0
-while not finishedFlag and counter < 3000: # This condition will become the Waypoint Reached condition
+while not finishedFlag and counter < 2000: # This condition will become the Waypoint Reached condition
 	time.sleep(0.01)
 	print(counter)
 	# SENSOR READING
@@ -86,7 +86,7 @@ while not finishedFlag and counter < 3000: # This condition will become the Wayp
 	else:
 		# Yaw
 		yaw = KPyaw*(math.atan2(math.sin(errYaw), math.cos(errYaw)))
-		if abs(yaw) < 0.15:
+		if abs(yaw) < 0.2:
 			yaw = 0
 		print("Counterclockwise" if yaw < 0 else "Clockwise")
 
