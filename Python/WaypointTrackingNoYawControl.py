@@ -72,7 +72,7 @@ while not finishedFlag and counter < 3000: # This condition will become the Wayp
 	# Current waypoint position on complex plane
 	P = complex(waypointList[n][0], waypointList[n][1])
 	# New imagined waypoint position P_prime found by rotation
-	P_prime = P*cmath.exp(-i*errYaw)
+	P_prime = P*cmath.exp(i*errYaw)
 	x = P_prime.real
 	y = P_prime.imag
 
