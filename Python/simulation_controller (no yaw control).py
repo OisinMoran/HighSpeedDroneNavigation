@@ -97,7 +97,7 @@ while not finishedFlag and counter < 2000: # This condition will become the Wayp
         # Otherwise advance to the next waypoint
         else:
             print("Next Waypoint")
-            # Reinitialise error integrals
+            # Reset error integrals
             errX_integ = 0
             errY_integ = 0
             #errAlt_integ = 0
@@ -106,7 +106,7 @@ while not finishedFlag and counter < 2000: # This condition will become the Wayp
             fileControl_data = open("C:\Python34\ControlData.txt","w")
             fileControl_data.write("{} {} {}".format(phi, theta, yaw))
             fileControl_data.close()
-            # First waypoint (waypoint counter)
+            # Update waypoint counter
             n += 1
     else:
         # Yaw

@@ -2,8 +2,7 @@
 ##      Waypoint Tracking      ##
 ## =========================== ##
 
-import math
-import cmath
+import math, cmath
 import time
 
 # Function to limit arguments to the move command to the range [-1,1]
@@ -22,7 +21,7 @@ waypoint_tolerance = 150
 
 curPos = (0,0,0)
 
-realFlag = True
+realFlag = False
 finishedFlag = False
 
 # Define Proportional Gains
@@ -42,8 +41,8 @@ refYaw = sensors.getOrientation("YAW")
  
 if realFlag:
 	control.takeOff()
-	#util.calibrateMagnetometer()
-	time.sleep(10)
+	util.calibrateMagnetometer()
+	time.sleep(5)
 
 # Initialise error integrals
 errX_integ = 0
@@ -72,24 +71,26 @@ while not finishedFlag and counter < 2000: # This condition will become the Wayp
 	print("Waypoint:\t\t {}".format(waypointList[n]))
 
 	# Calculate the drone's offset angle from the reference
+	
+	# Calculate error between drones current position and current waypoint
+	errPos = tuple([i - j for i, j in zip(waypointList[n], curPos)])
 	errYaw = math.radians(refYaw - curYaw)
-
-	# Define the complex number i
-	i = complex(0,1)
-	# Current waypoint position on complex plane
-	P = complex(waypointList[n][0], waypointList[n][1])
-	print("errYaw: \t\t{:.2f}".format(errYaw))
-	print("WP: \t\t{:.2f} {:.2f}".format(P.real, P.imag))
-	# New imagined waypoint position P_prime found by rotation
-	P_prime = P*cmath.exp(i*errYaw)
-	print("WP(rotated): \t{:.2f} {:.2f}".format(P_prime.real, P_prime.imag))
-	x = P_prime.real
-	y = P_prime.imag
-
-	# Calculate error between drones current position and current rotated waypoint
-	errPos = [x - curPos[0], y - curPos[1]]
 	errAlt = waypointList[n][2]-curAlt
 	print("Error:\t\t {},{},{}".format(errPos[0], errPos[1], errAlt))
+
+        # Current position on complex plane
+        W_o = complex(errPos[0], errPos[1])
+        print("errYaw: \t\t{:.2f}".format(errYaw))
+        #print("W_o: \t\t{:.2f} {:.2f}".format(P.real, P.imag))
+        
+        # New imagined waypoint position P_prime found by rotation
+        W_prime = W_o*cmath.exp(i*errYaw)
+        #print("W_prime: \t{:.2f} {:.2f}".format(W_prime.real, W_prime.imag))
+
+        # Calculate error between drones current position and current rotated waypoint
+        errPos = [W_prime.real, W_prime.imag]
+        #errAlt = waypointList[n][2]-curAlt
+        print("Error:\t\t {},{},{}".format(errPos[0], errPos[1], errYaw))
 
 	# Upate integral of errors
 	errX_integ += errPos[0]
@@ -110,6 +111,11 @@ while not finishedFlag and counter < 2000: # This condition will become the Wayp
 		# Otherwise advance to the next waypoint
 		else:
 			print("Next Waypoint")
+			# Reset error integrals
+                        errX_integ = 0
+                        errY_integ = 0
+                        errAlt_integ = 0
+                        # Update waypoint counter
 			n += 1
 	else:
 		# Yaw
