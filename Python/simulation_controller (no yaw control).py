@@ -24,7 +24,6 @@ waypoint_tolerance = 150
 
 curPos = (0,0,0)
 
-realFlag = True
 finishedFlag = False
 
 # Define Proportional Gains
